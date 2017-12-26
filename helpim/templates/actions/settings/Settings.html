@@ -1,0 +1,279 @@
+<h1>Helpim Интеграция</h1>
+<div id="helpim_tabs">
+    <ul class="tabs">
+        <li><a href="#helpim_actions">Действия</a></li>
+        <li><a href="#helpim_logs">Журнал</a></li>
+        <li><a href="#helpim_codes">Коды</a></li>
+        <li><a href="#helpim_settings">Параметры</a></li>
+    </ul>
+    <div class="tab-content"></div>
+    <div id="helpim_settings">
+        <h2>Параметры</h2>
+        <form action="?plugin=helpim&module=settings&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
+            <div class="field">
+                <div class="name">Идентификатор сервиса</div>
+                <div class="value">
+                    <input id="helpim_customer_service_id" type="text" name="settings[customer_service_id]" class="input" value="{if isset($settings.customer_service_id)}{$settings.customer_service_id}{/if}">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">API-токен</div>
+                <div class="value">
+                    <input id="helpim_token" type="text" name="settings[token]" class="input" value="{if isset($settings.token)}{$settings.token}{/if}">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name"></div>
+                <div class="value submit">
+                    <button type="submit" class="button green">Сохранить</button>
+                    <span id="plugins-settings-form-status" style="display:none"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="helpim_actions">
+        <h2>Действия</h2>
+        <div class="block">
+            <h3>Экспорт Заказа в Helpim</h3>
+            <form id="exportorder" class="helpim_export" method="post">
+                <input name="id" placeholder="Номер заказа" type="text">
+                <button type="submit" class="button green">Экспортировать</button>
+                <span class="helpim_result"></span>
+            </form>
+        </div>
+        <div class="block">
+            <h3>Экспорт Покупателя в Helpim</h3>
+            <form id="exportcustomer" class="helpim_export" method="post">
+                <input name="id" placeholder="ID покупателя" type="text">
+                <button type="submit" class="button green">Экспортировать</button>
+                <span class="helpim_result"></span>
+            </form>
+        </div>
+        <div class="block">
+            <h3>Ссылка на файл экспорта каталога товаров</h3>
+            <a href="{$settings_wa.url}{$settings.path_yml}" target="_blank">{$settings_wa.url}{$settings.path_yml}</a><br>
+            <form id="generateyml" class="helpim_export" method="post">
+                <button type="submit" class="button green">Сгенерировать</button>
+                <span class="helpim_result"></span>
+            </form>
+            <p>Примечание. Если количество товаров велико, длительность экспорта может превысить допустимое время
+            выполнения PHP-сценария, определённое конфигурацией Web-хостинга - {$max_execution_time} сек. В этом случае
+            экспорт возможен путём вызова команды в консоли Web-хостинга:</p>
+            <pre>/usr/bin/php {$wa_path_root}/cli.php shop helpimGenerateYml</pre>
+        </div>
+        <div class="block">
+            <h3>Автоматическая генерация файла экспорта каталога</h3>
+            <p>Необходимо создать задачу Cron с периодом выполнения 2 часа:</p>
+            <pre>/usr/bin/php {$wa_path_root}/cli.php shop helpimGenerateYml</pre>
+        </div>
+        <div class="block">
+            <h3>Экспорт статусов в Helpim</h3>
+            <form id="exportstates" class="helpim_export">
+                <button type="submit" class="button green">Экспортировать</button>
+                <span class="helpim_result"></span>
+            </form>
+        </div>
+        <div class="block">
+            <h3>Полный экспорт Покупателей и Заказов</h3>
+            <p>Полный экспорт следует выполнять только однажды, сразу после первичной установки и настройки модуля.
+            Продолжительность процесса зависит от объёма данных.
+            Для запуска требуется выполнить в консоли Web-хостинга команду:</p>
+            <pre>/usr/bin/php {$wa_path_root}/cli.php shop helpimFullExport</pre>
+        </div>
+    </div>
+    <div id="helpim_logs">
+        <h2>Журнал<span class="helpim_result"></span></h2>
+        <div class="paging"></div>
+        <table class="zebra">
+           <thead>
+               <tr>
+                   <th style="width: 12em">Дата</th>
+                   <th style="width: 12em">Действие</th>
+                   <th style="width: 3em">Код</th>
+                   <th>Сообщение</th>
+               </tr>
+           </thead>
+           <tbody></tbody>
+        </table>
+        <div class="paging"></div>
+    </div>
+    <div id="helpim_codes">
+        <div style="display: inline-block">
+            <h3>Коды способов доставки</h3>
+            <table class="zebra">
+                <thead>
+                    <th>Способ</th>
+                    <th>Код</th>
+                </thead>
+                <tbody>
+                {foreach $plugins_delivery as $plugin}
+                    <tr><td>{$plugin.name}</td><td>{$plugin.plugin}</td></tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+        <div style="display: inline-block">
+            <h3>Коды способов оплаты</h3>
+            <table class="zebra">
+                <thead>
+                    <th>Способ</th>
+                    <th>Код</th>
+                </thead>
+                <tbody>
+                {foreach $plugins_payment as $plugin}
+                    <tr><td>{$plugin.name}</td><td>{$plugin.plugin}</td></tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="small highlighted">
+    Поддержка: <a href="mailto:support@help-im.ru">support@help-im.ru</a><br>
+    Сайт: <a href="https://help-im.ru">help-im.ru</a>
+</div>
+<link rel="stylesheet" type="text/css" href="{$wa_url}wa-apps/shop/plugins/helpim/css/style.css" media="screen"/>
+<script src="{$wa_url}wa-apps/shop/plugins/helpim/js/jquery-ui-tabs.min.js" type="text/javascript"></script>
+<script>
+$(function() {
+    var $helpimTabs = $('#helpim_tabs'),
+        $helpimLogs = $('#helpim_logs'),
+
+        $loading = $('<i class="icon16 loading" style="vertical-align:middle"></i>'),
+        $yes = $('<i class="icon16 yes" style="vertical-align:middle"></i>'),
+        $no = $('<i class="icon16 no" style="vertical-align:middle"></i>'),
+
+        $customer_service_id = $('#helpim_customer_service_id'),
+        $token = $('#helpim_token');
+
+    $helpimTabs.tabs().children('ul').removeClass('ui-tabs-nav ui-widget-header');
+    helpimTabsShowHide();
+
+    $('form.helpim_export').submit(function (e) {
+        e.preventDefault();
+        helpimExport($(this));
+    });
+
+    $('#plugins-settings-form').submit(function () {
+        helpimTabsShowHide();
+    });
+
+    helpimGetlog();
+
+    function helpimGetlog(page, limit) {
+        if (!page || page < 1) {
+            page = 1;
+        }
+        if (!limit || limit < 10) {
+            limit = 20;
+        }
+
+        let offset = (page - 1) * limit,
+            url = '?plugin=helpim&module=settings&action=getlog&offset=' + offset + '&limit=' + limit,
+            $result = $helpimLogs.find('span.helpim_result');
+
+        $result.html($loading).show();
+
+        $.post(url, function (response) {
+            if(response.status == 'ok') {
+                let $tbody = $helpimLogs.find('table > tbody');
+                $result.html($yes);
+                $tbody.empty();
+
+                response.data.logs.forEach(function (log) {
+                    $tbody.append(
+                        '<tr>' +
+                            '<td>' + log.datetime + '</td>' +
+                            '<td>' + log.action + '</td>' +
+                            '<td>' + log.code + '</td>' +
+                            '<td>' + log.message + '</td>' +
+                        '</tr>');
+                });
+
+                let totalPagesCount = Math.ceil(response.data.total / limit);
+                let $paging = $helpimLogs.find('div.paging');
+
+                $paging.empty();
+
+                for (let i = 1; i <= totalPagesCount; i++) {
+                    if (i != 1 && i != totalPagesCount && i != page && i != (page - 1) && i != (page + 1)) {
+                        if (i == (page - 2) || i == (page + 2)) {
+                            $paging.append('..');
+                        }
+
+                        continue;
+                    }
+
+                    let $a = $('<a href="#">' + i + '</a>');
+                    $a.click(function (e) {
+                        e.preventDefault();
+                        helpimGetlog(i, limit);
+                    });
+
+                    if (i == page) {
+                        $a.addClass('selected');
+                    }
+
+                    $paging.append($a);
+                }
+
+                if (totalPagesCount > 1) {
+                    let $prev = $('<a href="#">«</a>');
+                    let $next = $('<a href="#">»</a>');
+
+                    $prev.click(function (e) {
+                        e.preventDefault();
+                        if ((page - 1) >= 1) {
+                            helpimGetlog(page - 1);
+                        }
+                    });
+                    $next.click(function (e) {
+                        e.preventDefault();
+                        if ((page + 1) <= totalPagesCount) {
+                            helpimGetlog(page + 1);
+                        }
+                    });
+
+                    $paging.prepend($prev);
+                    $paging.append($next);
+                }
+            } else {
+                $result.html($no).append(response.errors[0][0]);
+            }
+            $result.delay(2000).fadeOut(1000);
+        });
+    }
+
+    function helpimExport($form) {
+        let $result = $form.find('span.helpim_result');
+        $result.html($loading).show();
+
+        let url = '?plugin=helpim&module=settings&action=' + $form.attr('id');
+        let $id = $form.find('input[name="id"]');
+
+        if ($id && $id.val()) {
+            url += '&id=' + encodeURIComponent($id.val());
+        }
+
+        $.post(url, function (response) {
+            if(response.status == 'ok') {
+                $result.html($yes);
+            } else {
+                $result.html($no).append(response.errors[0][0]);
+            }
+            $result.delay(2000).fadeOut(1000);
+        });
+    }
+
+    function helpimTabsShowHide() {
+        if($customer_service_id.val() && $token.val()) {
+            $helpimTabs.tabs('enable');
+            return;
+        }
+
+        $helpimTabs.tabs('disable')
+            .tabs('enable', '#helpim_settings')
+            .tabs('option', 'active', 3);
+    }
+});
+</script>
